@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU Acceleration Test</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        #fps-counter {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="fps-counter"></div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const fpsCounter = document.getElementById('fps-counter');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particleCount = 10000;
+        const particles = [];
+
+        let lastTime = Date.now();
+        let frameCount = 0;
+
+        class Particle {
+            constructor(x, y, velocityX, velocityY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.velocityX = velocityX;
+                this.velocityY = velocityY;
+                this.size = size;
+                this.color = color;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+
+                if (this.x > canvas.width || this.x < 0) {
+                    this.velocityX = -this.velocityX;
+                }
+
+                if (this.y > canvas.height || this.y < 0) {
+                    this.velocityY = -this.velocityY;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function createParticles() {
+            for (let i = 0; i < particleCount; i++) {
+                const size = Math.random() * 5 + 1;
+                const x = Math.random() * (canvas.width - size * 2) + size;
+                const y = Math.random() * (canvas.height - size * 2) + size;
+                const velocityX = (Math.random() - 0.5) * 5;
+                const velocityY = (Math.random() - 0.5) * 5;
+                const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+
+                particles.push(new Particle(x, y, velocityX, velocityY, size, color));
+            }
+        }
+
+        function updateFPS() {
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastTime;
+
+            frameCount++;
+
+            if (deltaTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / deltaTime);
+                fpsCounter.textContent = `FPS: ${fps}`;
+
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+
+            updateFPS();
+            requestAnimationFrame(animate);
+        }
+
+        createParticles();
+        animate();
+    </script>
+</body>
+</html>
+
